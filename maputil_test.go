@@ -282,7 +282,12 @@ func TestSetAll(t *testing.T) {
 	}`)
 
 	tr := NewMapTraverser(result)
-	tr.SetAll(func(k string, value interface{}) (interface{}, bool) {
+	tr.SetAll(func(k Key, value interface{}) (interface{}, bool) {
+		if k.IsInt() && k.Key == 1 {
+			// updating element in array
+			// lets set 2nd element to 111
+			return 111, true
+		}
 		switch t := value.(type) {
 		case json.Number:
 			i, err := t.Int64()
@@ -308,7 +313,7 @@ func TestSetAll(t *testing.T) {
 		},
 		"array": []interface{}{
 			555,
-			666.6,
+			111,
 			map[string]interface{}{
 				"foo": 777,
 				"bar": 888.8,

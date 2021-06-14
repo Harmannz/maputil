@@ -32,7 +32,29 @@ func (t MapTraverser) Child(keys ...string) MapTraverser {
 	return t
 }
 
-type SetFn func(k string, value interface{}) (interface{}, bool)
+type Key struct {
+	Key interface{}
+}
+
+func (k Key) IsString() bool {
+	switch k.Key.(type) {
+	case string:
+		return true
+	default:
+		return false
+	}
+}
+
+func (k Key) IsInt() bool {
+	switch k.Key.(type) {
+	case int:
+		return true
+	default:
+		return false
+	}
+}
+
+type SetFn func(k Key, value interface{}) (interface{}, bool)
 
 func (t MapTraverser) SetAll(fn SetFn) int {
 	if t.m == nil {
@@ -47,7 +69,8 @@ func setAll(i interface{}, fn SetFn) int {
 	switch t := i.(type) {
 	case map[string]interface{}:
 		for k, v := range t {
-			res, changed := fn(k, v)
+			stringKey := Key{k}
+			res, changed := fn(stringKey, v)
 			if changed {
 				t[k] = res
 				o++
@@ -61,7 +84,9 @@ func setAll(i interface{}, fn SetFn) int {
 			case map[string]interface{}:
 				o += setAll(t[k], fn)
 			default:
-				res, changed := fn("", t[k])
+				// use index of position in array as key
+				intKey := Key{k}
+				res, changed := fn(intKey, t[k])
 				if changed {
 					t[k] = res
 					o++
